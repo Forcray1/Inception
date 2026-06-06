@@ -1,0 +1,11 @@
+# secrets/*.txt
+# secrets/*
+# !secrets/.gitkeep
+
+# srcs/.env
+
+data/
+
+.DS_Store
+*.swp
+*~

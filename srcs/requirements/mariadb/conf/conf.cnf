@@ -1,0 +1,11 @@
+# This file is here for the sole purpose of allowing mariadb to listen on all interface, and set back the standart default values
+
+[mysqld]
+bind-address = 0.0.0.0. # here to allow the communication with other containers, as without that line, the container would listen only to 127.0.0.1
+port         = 3306
+datadir      = /var/lib/mysql
+socket       = /run/mysqld/mysqld.sock
+skip-name-resolve
+
+[client]
+socket = /run/mysqld/mysqld.sock
