@@ -1,4 +1,3 @@
-# Start from Debian bookworm, the penultimate stable version.
 FROM debian:bookworm
 
 # apt-get update         | refreshes the list of available packages.
