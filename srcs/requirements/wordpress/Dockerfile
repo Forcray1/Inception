@@ -25,7 +25,7 @@ RUN curl -o /usr/local/bin/wp \
     && chmod +x /usr/local/bin/wp
 
 # Replace the php-fpm pool config so php-fpm listens on the network instead of
-# a local socket, so nginx in another container can reach it.
+# a local socket, so the web server in another container can reach it.
 COPY conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
 
 # php-fpm needs this folder to exist at runtime.
