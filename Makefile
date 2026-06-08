@@ -48,9 +48,10 @@ logs:
 clean: down
 	$(DC) down --rmi all --volumes --remove-orphans
 
-# Do clean, then delete the saved data on the host.
-fclean: clean
+fclean:
+	-$(DC) down --rmi all --volumes --remove-orphans
 	sudo rm -rf $(DB_DIR) $(WP_DIR)
+	docker image prune -f
 
 re: fclean all
 
