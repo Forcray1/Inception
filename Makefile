@@ -2,12 +2,11 @@
 # the old version, change DC to use "docker-compose" (with a hyphen).
 
 NAME    = inception
-LOGIN   = mlorenzo
 COMPOSE = srcs/docker-compose.yml
 DC      = docker compose -f $(COMPOSE)
 
 # The host folders that back the two named volumes.
-DATA_DIR = /home/$(LOGIN)/data
+DATA_DIR = /home/mlorenzo/data
 DB_DIR   = $(DATA_DIR)/mariadb
 WP_DIR   = $(DATA_DIR)/wordpress
 

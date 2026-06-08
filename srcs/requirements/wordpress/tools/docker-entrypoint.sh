@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Stop immediately if any command fails.
 set -e
 

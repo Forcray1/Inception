@@ -7,6 +7,7 @@ FROM debian:bookworm
 #   mariadb-client                used by the entrypoint to wait for the database
 RUN apt-get update && apt-get install -y \
     php8.2-fpm \
+    php8.2-cli \
     php8.2-mysql \
     php8.2-curl \
     php8.2-gd \

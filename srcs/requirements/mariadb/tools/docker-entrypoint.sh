@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Makes the script stop immediately if any command fails.
 set -e
 
