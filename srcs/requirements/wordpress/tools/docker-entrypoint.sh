@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -11,7 +11,7 @@ mkdir -p /run/php
 
 cd /var/www/html
 
-# Wait until MariaDB is reachable and user can log in.
+# Wait until MariaDB is reachable AND our user can log in.
 # Ends as soon as the DB answers.
 echo "[wordpress] Waiting for MariaDB to be ready..."
 until mariadb -h"$MYSQL_HOST" -u"$MYSQL_USER" -p"$DB_PASSWORD" -e "SELECT 1;" >/dev/null 2>&1; do
@@ -32,7 +32,8 @@ if [ ! -f wp-config.php ]; then
         --dbpass="$DB_PASSWORD" \
         --dbhost="$MYSQL_HOST"
 
-    # Install the site and create the admin user.
+    # Install the site and create the ADMIN user. The admin name comes from
+    # .env (it must not contain "admin"), the password from the secret file.
     wp core install --allow-root \
         --url="$WP_URL" \
         --title="$WP_TITLE" \

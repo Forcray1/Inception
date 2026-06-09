@@ -1,5 +1,4 @@
 #!/bin/sh
-# Prepares the database, then starts MariaDB as PID 1.
 set -e
 
 DB_ROOT_PASSWORD=$(cat /run/secrets/db_root_password)
@@ -25,9 +24,6 @@ fi
 # the reliable "have we set up our stuff yet?" test.
 if [ ! -d "/var/lib/mysql/${MYSQL_DATABASE}" ]; then
     echo "[mariadb] Creating database '${MYSQL_DATABASE}' and user '${MYSQL_USER}'."
-    # Bootstrap mode starts with --skip-grant-tables, so the privilege system is
-    # off and ALTER/CREATE USER/GRANT fail with error 1290. FLUSH PRIVILEGES
-    # first loads the grant tables and re-enables them, so the rest works.
     mysqld --user=mysql --bootstrap <<EOF
 FLUSH PRIVILEGES;
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${DB_ROOT_PASSWORD}';

@@ -7,7 +7,6 @@ FROM debian:bookworm
 #   mariadb-client                used by the entrypoint to wait for the database
 RUN apt-get update && apt-get install -y \
     php8.2-fpm \
-    php8.2-cli \
     php8.2-mysql \
     php8.2-curl \
     php8.2-gd \
@@ -25,7 +24,7 @@ RUN curl -o /usr/local/bin/wp \
     && chmod +x /usr/local/bin/wp
 
 # Replace the php-fpm pool config so php-fpm listens on the network instead of
-# a local socket, so the web server in another container can reach it.
+# a local socket, so nginx in another container can reach it.
 COPY conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
 
 # php-fpm needs this folder to exist at runtime.
@@ -40,4 +39,4 @@ WORKDIR /var/www/html
 
 EXPOSE 9000
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

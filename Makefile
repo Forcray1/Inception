@@ -25,23 +25,18 @@ build: dirs
 up: dirs
 	$(DC) up -d
 
-# Stop and remove the containers and the network.
 down:
 	$(DC) down
 
-# Stop the containers without removing them.
 stop:
 	$(DC) stop
 
-# Start containers that were stopped.
 start:
 	$(DC) start
 
-# Show the state of the containers.
 status:
 	$(DC) ps
 
-# Show and follow the logs of every container.
 logs:
 	$(DC) logs -f
 
@@ -51,7 +46,6 @@ clean: down
 fclean:
 	-$(DC) down --rmi all --volumes --remove-orphans
 	sudo rm -rf $(DATA_DIR)
-	docker builder prune -f
 	docker image prune -f
 
 re: fclean all
