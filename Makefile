@@ -50,7 +50,8 @@ clean: down
 
 fclean:
 	-$(DC) down --rmi all --volumes --remove-orphans
-	sudo rm -rf $(DB_DIR) $(WP_DIR)
+	sudo rm -rf $(DATA_DIR)
+	docker builder prune -f
 	docker image prune -f
 
 re: fclean all
