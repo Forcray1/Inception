@@ -5,7 +5,12 @@ FROM debian:bookworm
 # rm -rf .../apt/lists/* | deletes the downloaded package lists afterwards
 RUN apt-get update && \
     apt-get install -y mariadb-server && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/lib/mysql/*
+# Empty the data dir the package pre-created at build time. Otherwise Docker
+# copies it into the (empty) named volume on first mount, /var/lib/mysql/mysql
+# then exists, and our entrypoint wrongly thinks the DB is already set up and
+# skips the user/database creation.
 
 # MariaDB needs this folder at runtime for its unix socket file.
 RUN mkdir -p /run/mysqld && chown -R mysql:mysql /run/mysqld

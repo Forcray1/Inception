@@ -18,9 +18,8 @@ services:
       - db_password
     expose:
       - "3306"
-    # Report "healthy" only once the server actually answers, so wordpress can wait for it.
     healthcheck:
-      test: ['CMD-SHELL', 'mariadb-admin ping -h localhost -u root -p"$(cat /run/secrets/db_root_password)" --silent']
+      test: ['CMD-SHELL', 'unset MYSQL_HOST; mariadb-admin ping -u root -p"$(cat /run/secrets/db_root_password)" --silent']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,8 +33,7 @@ services:
     image: wordpress
     restart: always
     depends_on:
-      mariadb:
-        condition: service_healthy
+      - mariadb
     networks:
       - inception
     volumes:
