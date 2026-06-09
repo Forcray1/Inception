@@ -109,6 +109,136 @@ driver, so they stay named volumes while meeting the required storage location.
 ### AI Usage:
 - AI was used as a learning and explanation tool, and to help compose the README, and the documentation.
 
+## Walkthrough
+
+This section lists, in order, the commands used to verify the project and the
+output you should expect.
+
+### 0. Clean the machine first
+
+Run the reset command from the evaluation sheet in an empty directory before
+cloning, so nothing is left from a previous run:
+
+    docker stop $(docker ps -qa); docker rm $(docker ps -qa); docker rmi -f $(docker images -qa); docker volume rm $(docker volume ls -q); docker network rm $(docker network ls -q) 2>/dev/null
+
+Expected: the three default networks (`bridge`, `host`, `none`) cannot be
+removed and print an error; everything else is gone. Confirm with:
+
+    docker ps -a        # expected: empty (only the header line)
+    docker images -qa   # expected: empty
+    docker volume ls    # expected: empty (only the header line)
+
+### 1. Static checks (before building)
+
+No forbidden directives in the compose file or anywhere Docker is used:
+
+    grep -nE "network:\s*host|links:|--link" srcs/docker-compose.yml Makefile srcs/requirements/*/Dockerfile
+    # expected: no output
+
+Networks are present in the compose file:
+
+    grep -n "networks" srcs/docker-compose.yml
+    # expected: shows the per-service "networks:" keys and the top-level "networks:" block
+
+No background process or infinite loop in the Dockerfiles or scripts:
+
+    grep -nE "tail -f|sleep infinity" srcs/requirements/*/tools/*.sh srcs/requirements/*/Dockerfile
+    # expected: no output
+
+Base image is the penultimate stable Debian (bookworm), one Dockerfile per
+service, none empty:
+
+    grep -n "^FROM" srcs/requirements/*/Dockerfile
+    # expected: each line is "FROM debian:bookworm"
+
+Image name equals service name:
+
+    grep -nE "^\s+(image|container_name):" srcs/docker-compose.yml
+    # expected: image and service/container names match (mariadb, wordpress, nginx)
+
+No secrets are tracked in git:
+
+    git ls-files srcs/.env secrets/*.txt
+    # expected: no output (only secrets/.gitkeep and srcs/.env_ex should be tracked)
+
+### 2. Build and start
+
+The domain must resolve locally first:
+
+    grep mlorenzo.42.fr /etc/hosts
+    # expected: 127.0.0.1 mlorenzo.42.fr
+
+Create the four secret files (one password per file, no newline issues), then
+build and start the stack from the repository root:
+
+    make
+    # expected: images build with no error, then the three containers start
+
+Check container state:
+
+    docker compose -f srcs/docker-compose.yml ps
+    # expected: mariadb, wordpress, nginx all "Up"; mariadb shows "(healthy)"
+
+### 3. Network
+
+    docker network ls | grep inception
+    # expected: a "inception" bridge network is listed
+
+### 4. NGINX with SSL/TLS
+
+Port 80 must be refused, port 443 must serve over TLS 1.2/1.3:
+
+    curl -I http://mlorenzo.42.fr/
+    # expected: connection refused / fails (nothing listens on 80)
+
+    curl -kIv https://mlorenzo.42.fr/ 2>&1 | grep -iE "SSL connection using|TLSv1|HTTP/"
+    # expected: TLSv1.2 or TLSv1.3, and "HTTP/1.1 200 OK"
+
+In a browser, open https://mlorenzo.42.fr — expected: the configured WordPress
+site (NOT the WordPress installation wizard). The self-signed certificate
+warning is normal.
+
+### 5. WordPress + php-fpm + volume
+
+    docker compose -f srcs/docker-compose.yml ps wordpress
+    # expected: container "Up"
+
+    grep -i nginx srcs/requirements/wordpress/Dockerfile
+    # expected: no output (no nginx in the wordpress image)
+
+    docker volume inspect wordpress | grep -i device
+    # expected: "device": "/home/mlorenzo/data/wordpress"
+
+In the browser: log in at https://mlorenzo.42.fr/wp-admin with the admin
+account, edit a page, and confirm the change shows on the site. Post a comment
+with the non-admin user. All expected to work.
+
+### 6. MariaDB + volume
+
+    docker compose -f srcs/docker-compose.yml ps mariadb
+    # expected: container "Up (healthy)"
+
+    grep -i nginx srcs/requirements/mariadb/Dockerfile
+    # expected: no output
+
+    docker volume inspect mariadb | grep -i device
+    # expected: "device": "/home/mlorenzo/data/mariadb"
+
+The database exists and is not empty:
+
+    docker exec -it mariadb mariadb -u root -p"$(cat secrets/db_root_password.txt)" -e "SHOW DATABASES; USE wordpress; SHOW TABLES;"
+    # expected: the "wordpress" database is listed and contains wp_* tables
+
+### 7. Persistence
+
+Reboot the virtual machine, then from the repository root:
+
+    docker compose -f srcs/docker-compose.yml up -d
+    # expected: containers start again with no rebuild needed
+
+Reopen https://mlorenzo.42.fr — expected: the page edit and the comment made
+earlier are still there, and no installation wizard appears.
+
 ## Changes Log
 
 Changes made after the initial implementation, with the reason for each.
